@@ -1,0 +1,12 @@
+HashMap:
+	--HashMap线程不安全，效率非常高，在不涉及线程安全的程序中广泛被应用。
+ConcurrentHashMap：
+	--分段锁解决线程安全性问题，并提高并发度。
+	--ConcurrentHashMap把Map分成了N个Segment（默认16），其中Segment是线程同步的，相当于分成了N个Hashtable。
+	--当实现Put方法时，在key值经过正常的hash后，还要再经过一次segmentForHash算法，用来分配具体防盗哪个Segment。
+		后来的线程如果经过计算也是放在这个Segment下，则需要先获取锁，如果计算得出应该放在其他的Segment，则正常执行，
+		不会影响效率，以此实现线程安全。ConcurrentHashMap使用锁分离技术，只要多个修改操作不发生在同一个Segment上，它们就可以并发进行。
+	--有些方法需要跨段，比如size()和containsValue()，需要锁定整个表而而不仅仅是某个段，这需要按顺序锁定所有段，操作完毕后，
+		又按顺序释放所有段的锁。这里“按顺序”是很重要的，否则极有可能出现死锁，在ConcurrentHashMap内部，段数组是final的，
+		并且其成员变量实际上也是final的，但是，仅仅是将数组声明为final的并不保证数组成员也是final的，这需要实现上的保证。
+		这可以确保不会出现死锁，因为获得锁的顺序是固定的。
